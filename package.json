@@ -1,0 +1,24 @@
+{
+  "name": "indegoapp",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www",
+    "test": "mocha"
+  },
+  "dependencies": {
+    "axios": "^0.27.2",
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "express": "~4.16.1",
+    "http-errors": "~1.6.3",
+    "morgan": "~1.9.1",
+    "mysql": "^2.18.1",
+    "pug": "2.0.0-beta11",
+    "request": "^2.88.2",
+    "xml2json-light": "^1.0.6"
+  },
+  "devDependencies": {
+    "mocha": "^10.0.0"
+  }
+}
