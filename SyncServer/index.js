@@ -210,126 +210,116 @@ function insertWeatherData(url, callback) {
   )
 }
 
-// setInterval(() => {
-insertBikesData(
-  bike_api_url,
-  ({ errorResponse, propertiesToInsert, bikesToInsert }) => {
+setInterval(() => {
+  insertBikesData(
+    bike_api_url,
+    ({ errorResponse, propertiesToInsert, bikesToInsert }) => {
+      if (errorResponse) {
+        throw callback.errorResponse
+      }
+      //below is where I might make an insert statement to insert my values into a mysql table
+      var createPropertiesTable =
+        'CREATE TABLE properties (id INT(4), name VARCHAR(255), totalDocks  INT(4), docksAvailable INT(4), bikesAvailable INT(4), classicBikesAvailable INT(4), smartBikesAvailable INT(4), electricBikesAvailable INT(4), rewardBikesAvailable INT(4), rewardDocksAvailable INT(4), kioskStatus VARCHAR(100), kioskPublicStatus VARCHAR(100), kioskConnectionStatus VARCHAR(100), kioskType INT(4), addressStreet VARCHAR(100), addressCity VARCHAR(100), addressState VARCHAR(100), addressZipCode VARCHAR(100), closeTime VARCHAR(100), evenEnd VARCHAR(100), evenStart VARCHAR(100), isEventBased TINYINT, isVirtual TINYINT, kioskId INT(4), notes VARCHAR(100), openTime VARCHAR(100), publicText VARCHAR(100), timeZone VARCHAR(100), trikesAvailable INT(4), latitude FLOAT(10), longitude FLOAT(10))'
+
+      var insertPropertiesTable =
+        'INSERT INTO properties (id, name, totalDocks, docksAvailable, bikesAvailable, classicBikesAvailable, smartBikesAvailable, electricBikesAvailable, rewardBikesAvailable, rewardDocksAvailable, kioskStatus, kioskPublicStatus, kioskConnectionStatus, kioskType, addressStreet, addressCity, addressState, addressZipCode, closeTime, evenEnd, evenStart, isEventBased, isVirtual, kioskId, notes, openTime, publicText, timeZone, trikesAvailable, latitude, longitude) VALUES ?'
+
+      var deletePropertiesTableData = 'DELETE FROM properties'
+
+      var createBikesTable =
+        'CREATE TABLE bikes (id INT(4), dockNumber INT(4), isElectric TINYINT, isAvailable TINYINT, battery FLOAT(10))'
+
+      var insertBikesTable =
+        'INSERT INTO bikes (id, dockNumber, isElectric, isAvailable, battery) VALUES ?'
+
+      var deleteBikesTableData = 'DELETE FROM bikes'
+
+      let bikesData = []
+      for (let i = 0; i < bikesToInsert.length; i++) {
+        for (let j = 0; j < bikesToInsert[i].length; j++) {
+          bikesData.push(bikesToInsert[i][j])
+        }
+      }
+
+      connection.query('SHOW TABLES LIKE "properties"', (error, results) => {
+        if (error) return console.log(error)
+
+        if (results.length) {
+          connection.query(deletePropertiesTableData, function (err, result) {
+            if (err) throw err
+
+            connection.query(
+              insertPropertiesTable,
+              [propertiesToInsert],
+              function (err, result) {
+                if (err) throw err
+                console.log(result.affectedRows + ' rows inserted')
+              },
+            )
+          })
+
+          // console.log('bikes to insert', bikesToInsert)
+
+          connection.query(deleteBikesTableData, function (err, result) {
+            if (err) throw err
+
+            connection.query(insertBikesTable, [bikesData], function (
+              err,
+              result,
+            ) {
+              if (err) throw err
+              console.log(result.affectedRows + ' rows inserted(bikes table)')
+            })
+          })
+        } else {
+          connection.query(createPropertiesTable, function (err, result) {
+            if (err) throw err
+            connection.query(
+              insertPropertiesTable,
+              [propertiesToInsert],
+              function (err, result) {
+                if (err) throw err
+                console.log(
+                  result.affectedRows + ' rows inserted(properties table)',
+                )
+              },
+            )
+          })
+
+          connection.query(createBikesTable, function (err, result) {
+            if (err) throw err
+
+            connection.query(insertBikesTable, [bikesData], function (
+              err,
+              result,
+            ) {
+              if (err) throw err
+              console.log(result.affectedRows + ' rows inserted(bikes table)')
+            })
+          })
+        }
+      })
+    },
+  )
+}, `${1000 * 60 * 60}`)
+
+return setInterval(() => {
+  insertWeatherData(weather_api_url, ({ errorResponse, weathersToInsert }) => {
     if (errorResponse) {
       throw callback.errorResponse
     }
+
     //below is where I might make an insert statement to insert my values into a mysql table
-    var createPropertiesTable =
-      'CREATE TABLE properties (id INT(4), name VARCHAR(255), totalDocks  INT(4), docksAvailable INT(4), bikesAvailable INT(4), classicBikesAvailable INT(4), smartBikesAvailable INT(4), electricBikesAvailable INT(4), rewardBikesAvailable INT(4), rewardDocksAvailable INT(4), kioskStatus VARCHAR(100), kioskPublicStatus VARCHAR(100), kioskConnectionStatus VARCHAR(100), kioskType INT(4), addressStreet VARCHAR(100), addressCity VARCHAR(100), addressState VARCHAR(100), addressZipCode VARCHAR(100), closeTime VARCHAR(100), evenEnd VARCHAR(100), evenStart VARCHAR(100), isEventBased TINYINT, isVirtual TINYINT, kioskId INT(4), notes VARCHAR(100), openTime VARCHAR(100), publicText VARCHAR(100), timeZone VARCHAR(100), trikesAvailable INT(4), latitude FLOAT(10), longitude FLOAT(10))'
+    var createWeatherTable =
+      'CREATE TABLE weathers (lon FLOAT(10), lat FLOAT(10), temp FLOAT(10), feels_like FLOAT(10), temp_min FLOAT(10), temp_max FLOAT(10), pressure FLOAT(10), humidity FLOAT(10), visibility INT(10), wind_speed FLOAT(10), wind_deg FLOAT(10), wind_gust FLOAT(10), clouds INT(10), dt INT(10), sys_type INT(10), sys_id INT(10), sys_country VARCHAR(100), sys_sunrise INT(10), sys_sunset INT(10), timeZone INT(10), id INT(10), name VARCHAR(100), cod INT(10), date VARCHAR(10))'
 
-    var insertPropertiesTable =
-      'INSERT INTO properties (id, name, totalDocks, docksAvailable, bikesAvailable, classicBikesAvailable, smartBikesAvailable, electricBikesAvailable, rewardBikesAvailable, rewardDocksAvailable, kioskStatus, kioskPublicStatus, kioskConnectionStatus, kioskType, addressStreet, addressCity, addressState, addressZipCode, closeTime, evenEnd, evenStart, isEventBased, isVirtual, kioskId, notes, openTime, publicText, timeZone, trikesAvailable, latitude, longitude) VALUES ?'
+    var insertWeatherTable =
+      'INSERT INTO weathers (lon , lat , temp , feels_like , temp_min , temp_max , pressure, humidity, visibility, wind_speed, wind_deg, wind_gust, clouds, dt , sys_type , sys_id , sys_country, sys_sunrise, sys_sunset, timeZone, id, name, cod, date) VALUES (?)'
 
-    var deletePropertiesTableData = 'DELETE FROM properties'
-
-    var createBikesTable =
-      'CREATE TABLE bikes (id INT(4), dockNumber INT(4), isElectric TINYINT, isAvailable TINYINT, battery FLOAT(10))'
-
-    var insertBikesTable =
-      'INSERT INTO bikes (id, dockNumber, isElectric, isAvailable, battery) VALUES ?'
-
-    var deleteBikesTableData = 'DELETE FROM bikes'
-
-    let bikesData = []
-    for (let i = 0; i < bikesToInsert.length; i++) {
-      for (let j = 0; j < bikesToInsert[i].length; j++) {
-        bikesData.push(bikesToInsert[i][j])
-      }
-    }
-
-    connection.query('SHOW TABLES LIKE "properties"', (error, results) => {
-      if (error) return console.log(error)
+    connection.query('SHOW TABLES LIKE "weathers"', (error, results) => {
+      if (error) return console.log('error ===>', error)
 
       if (results.length) {
-        connection.query(deletePropertiesTableData, function (err, result) {
-          if (err) throw err
-
-          connection.query(
-            insertPropertiesTable,
-            [propertiesToInsert],
-            function (err, result) {
-              if (err) throw err
-              console.log(result.affectedRows + ' rows inserted')
-            },
-          )
-        })
-
-        // console.log('bikes to insert', bikesToInsert)
-
-        connection.query(deleteBikesTableData, function (err, result) {
-          if (err) throw err
-
-          connection.query(insertBikesTable, [bikesData], function (
-            err,
-            result,
-          ) {
-            if (err) throw err
-            console.log(result.affectedRows + ' rows inserted(bikes table)')
-          })
-        })
-      } else {
-        connection.query(createPropertiesTable, function (err, result) {
-          if (err) throw err
-          connection.query(
-            insertPropertiesTable,
-            [propertiesToInsert],
-            function (err, result) {
-              if (err) throw err
-              console.log(
-                result.affectedRows + ' rows inserted(properties table)',
-              )
-            },
-          )
-        })
-
-        connection.query(createBikesTable, function (err, result) {
-          if (err) throw err
-
-          connection.query(insertBikesTable, [bikesData], function (
-            err,
-            result,
-          ) {
-            if (err) throw err
-            console.log(result.affectedRows + ' rows inserted(bikes table)')
-          })
-        })
-      }
-    })
-  },
-)
-// }, '1800')
-
-// return setInterval(() => {
-insertWeatherData(weather_api_url, ({ errorResponse, weathersToInsert }) => {
-  if (errorResponse) {
-    throw callback.errorResponse
-  }
-
-  //below is where I might make an insert statement to insert my values into a mysql table
-  var createWeatherTable =
-    'CREATE TABLE weathers (lon FLOAT(10), lat FLOAT(10), temp FLOAT(10), feels_like FLOAT(10), temp_min FLOAT(10), temp_max FLOAT(10), pressure FLOAT(10), humidity FLOAT(10), visibility INT(10), wind_speed FLOAT(10), wind_deg FLOAT(10), wind_gust FLOAT(10), clouds INT(10), dt INT(10), sys_type INT(10), sys_id INT(10), sys_country VARCHAR(100), sys_sunrise INT(10), sys_sunset INT(10), timeZone INT(10), id INT(10), name VARCHAR(100), cod INT(10), date VARCHAR(10))'
-
-  var insertWeatherTable =
-    'INSERT INTO weathers (lon , lat , temp , feels_like , temp_min , temp_max , pressure, humidity, visibility, wind_speed, wind_deg, wind_gust, clouds, dt , sys_type , sys_id , sys_country, sys_sunrise, sys_sunset, timeZone, id, name, cod, date) VALUES (?)'
-
-  connection.query('SHOW TABLES LIKE "weathers"', (error, results) => {
-    if (error) return console.log('error ===>', error)
-
-    if (results.length) {
-      connection.query(insertWeatherTable, [weathersToInsert], function (
-        err,
-        result,
-      ) {
-        if (err) throw err
-        console.log(result.affectedRows + ' rows inserted(weathers table)')
-      })
-    } else {
-      connection.query(createWeatherTable, function (err, result) {
-        if (err) throw err
         connection.query(insertWeatherTable, [weathersToInsert], function (
           err,
           result,
@@ -337,8 +327,18 @@ insertWeatherData(weather_api_url, ({ errorResponse, weathersToInsert }) => {
           if (err) throw err
           console.log(result.affectedRows + ' rows inserted(weathers table)')
         })
-      })
-    }
+      } else {
+        connection.query(createWeatherTable, function (err, result) {
+          if (err) throw err
+          connection.query(insertWeatherTable, [weathersToInsert], function (
+            err,
+            result,
+          ) {
+            if (err) throw err
+            console.log(result.affectedRows + ' rows inserted(weathers table)')
+          })
+        })
+      }
+    })
   })
-})
-// }, '864000000')
+}, `${1000 * 60 * 60 * 24}`)
